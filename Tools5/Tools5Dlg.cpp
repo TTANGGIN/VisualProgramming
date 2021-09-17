@@ -59,12 +59,15 @@ CTools5Dlg::CTools5Dlg(CWnd* pParent /*=nullptr*/)
 void CTools5Dlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
+	DDX_Control(pDX, IDC_LIST, m_ctlList);
 }
 
 BEGIN_MESSAGE_MAP(CTools5Dlg, CDialogEx)
 	ON_WM_SYSCOMMAND()
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
+	ON_BN_CLICKED(IDC_BUTT_OK, &CTools5Dlg::OnBnClickedButtOk)
+	ON_BN_CLICKED(IDC_BUTT_EXIT, &CTools5Dlg::OnBnClickedButtExit)
 END_MESSAGE_MAP()
 
 
@@ -100,6 +103,9 @@ BOOL CTools5Dlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// 작은 아이콘을 설정합니다.
 
 	// TODO: 여기에 추가 초기화 작업을 추가합니다.
+	m_ctlList.AddString(_T("사과"));
+	m_ctlList.AddString(_T("바나나"));
+	m_ctlList.AddString(_T("포도"));
 
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
 }
@@ -153,3 +159,30 @@ HCURSOR CTools5Dlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
+
+
+void CTools5Dlg::OnBnClickedButtOk()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	int i;
+	CString str;
+	UpdateData(TRUE);
+	i = m_ctlList.GetCurSel();
+	//if (i == 0)
+	//	str = "사과를 선택하였습니다.";
+	//else if (i == 1)
+	//	str = "바나나를 선택하였습니다.";
+	//else if (i == 2)
+	//	str = "포도를 선택하였습니다.";
+	//MessageBox(str);
+	m_ctlList.GetText(i, str);
+	MessageBox(str + _T("를 선택하였습니다."));
+}
+
+
+void CTools5Dlg::OnBnClickedButtExit()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	OnOK();
+
+}
