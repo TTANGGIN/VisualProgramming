@@ -37,4 +37,8 @@ public:
 	int m_timer;
 	CString m_strTime;
 	afx_msg void OnBnClickedButtStart();
+	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
+	BOOL isWhiteTurn;
+	BOOL isGameStart;
+	CFont m_font;
 };
