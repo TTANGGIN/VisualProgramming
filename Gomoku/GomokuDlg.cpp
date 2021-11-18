@@ -68,6 +68,7 @@ BEGIN_MESSAGE_MAP(CGomokuDlg, CDialogEx)
 	ON_WM_TIMER()
 	ON_WM_CTLCOLOR()
 	ON_BN_CLICKED(IDC_BUTT_START, &CGomokuDlg::OnBnClickedButtStart)
+	ON_WM_LBUTTONDOWN()
 END_MESSAGE_MAP()
 
 
@@ -104,6 +105,10 @@ BOOL CGomokuDlg::OnInitDialog()
 
 	// TODO: 여기에 추가 초기화 작업을 추가합니다.
 	m_timer = 20;
+	isWhiteTurn = FALSE;
+	isGameStart = FALSE;
+	m_font.CreateFontW(30, 0, 0, 0, 0, 0, 0, 0, DEFAULT_CHARSET, 0, 0, 0, 0, _T("맑은고딕"));
+	GetDlgItem(IDC_STATIC_TIMER)->SetFont(&m_font);
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
 }
 
@@ -219,4 +224,40 @@ void CGomokuDlg::OnBnClickedButtStart()
 {
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
 	SetTimer(0, 1000, NULL);
+	isGameStart = TRUE;
+}
+
+
+void CGomokuDlg::OnLButtonDown(UINT nFlags, CPoint point)
+{
+	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
+	if (isGameStart)
+	{
+		CClientDC dc(this);
+		CBrush brush;
+		brush.CreateSolidBrush(RGB(0, 0, 0));
+		CBrush* oldBrush;
+
+		int x = point.x;
+		int y = point.y;
+		if (x > 225 && y > 125 && x <= 875 && y <= 775)
+		{
+			if (!isWhiteTurn)
+			{
+				oldBrush = dc.SelectObject(&brush);
+				dc.Ellipse(x - 20, y - 20, x + 20, y + 20);
+				dc.SelectObject(oldBrush);
+				m_timer = 20;
+				isWhiteTurn = TRUE;
+			}
+			else
+			{
+				dc.Ellipse(x - 20, y - 20, x + 20, y + 20);
+				m_timer = 20;
+				isWhiteTurn = FALSE;
+			}
+		}
+	}
+	
+	CDialogEx::OnLButtonDown(nFlags, point);
 }
