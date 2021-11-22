@@ -34,11 +34,28 @@ protected:
 public:
 	afx_msg void OnTimer(UINT_PTR nIDEvent);
 	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
-	int m_timer;
-	CString m_strTime;
 	afx_msg void OnBnClickedButtStart();
 	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
+	afx_msg void OnBnClickedButtStop();
+	CString m_strTime;
+	CFont m_font;
 	BOOL isWhiteTurn;
 	BOOL isGameStart;
-	CFont m_font;
+	int isExist[13][13];
+	int m_timer;
+
+	// 오목 알고리즘 관련
+	typedef void(__thiscall CGomokuDlg::* Shift_fp)(char, char);
+	void CheckResult(char y, char x, Shift_fp fp);
+	void Shift1(char y, char x);
+	void Shift2(char y, char x);
+	void Shift3(char y, char x);
+	void Shift4(char y, char x);
+	void Shift5(char y, char x);
+	void Shift6(char y, char x);
+	void Shift7(char y, char x);
+	void Shift8(char y, char x);
+	int m_state = 0;
+	int m_result = 0;
+	int m_countNum[4];
 };

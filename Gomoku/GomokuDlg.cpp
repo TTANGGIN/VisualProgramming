@@ -69,6 +69,7 @@ BEGIN_MESSAGE_MAP(CGomokuDlg, CDialogEx)
 	ON_WM_CTLCOLOR()
 	ON_BN_CLICKED(IDC_BUTT_START, &CGomokuDlg::OnBnClickedButtStart)
 	ON_WM_LBUTTONDOWN()
+	ON_BN_CLICKED(IDC_BUTT_STOP, &CGomokuDlg::OnBnClickedButtStop)
 END_MESSAGE_MAP()
 
 
@@ -173,9 +174,31 @@ void CGomokuDlg::OnPaint()
 			dc.MoveTo(250, 150 + (i * 50));
 			dc.LineTo(850, 150 + (i * 50));
 		}
-		
-
 		dc.SelectObject(oldPen);
+
+		// Invalid시 바둑알 복원
+		if (isGameStart)
+		{
+			CBrush black_brush(RGB(0, 0, 0));
+			CBrush* p_oldBrush;
+			for (int y = 1; y <= 13; y++)
+			{
+				for (int x = 1; x <= 13; x++)
+				{
+					if (isExist[y - 1][x - 1] > 0)
+					{
+						if (isExist[y - 1][x - 1] == 1)
+						{
+							p_oldBrush = dc.SelectObject(&black_brush);
+							dc.Ellipse(x * 50 - 20 + 200, y * 50 - 20 + 100, x * 50 + 20 + 200, y * 50 + 20 + 100);
+							dc.SelectObject(p_oldBrush);
+						}
+						else
+							dc.Ellipse(x * 50 - 20 + 200, y * 50 - 20 + 100, x * 50 + 20 + 200, y * 50 + 20 + 100);
+					}
+				}
+			}
+		}
 	}
 }
 
@@ -195,6 +218,10 @@ void CGomokuDlg::OnTimer(UINT_PTR nIDEvent)
 	if (m_timer < 0)
 	{
 		m_timer = 20;
+		if (isWhiteTurn)
+			isWhiteTurn = FALSE;
+		else
+			isWhiteTurn = TRUE;
 	}
 	m_strTime.Format(_T("%d"), m_timer);
 	SetDlgItemText(IDC_STATIC_TIMER, m_strTime);
@@ -225,8 +252,26 @@ void CGomokuDlg::OnBnClickedButtStart()
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
 	SetTimer(0, 1000, NULL);
 	isGameStart = TRUE;
+	GetDlgItem(IDC_BUTT_START)->EnableWindow(FALSE);
+	GetDlgItem(IDC_BUTT_STOP)->EnableWindow(TRUE);
+
 }
 
+void CGomokuDlg::OnBnClickedButtStop()
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	GetDlgItem(IDC_BUTT_START)->EnableWindow(TRUE);
+	GetDlgItem(IDC_BUTT_STOP)->EnableWindow(FALSE);
+	KillTimer(0);
+	isGameStart = FALSE;
+	memset(isExist, 0, sizeof(isExist));
+	memset(m_countNum, 0, sizeof(m_countNum));
+	m_timer = 20;
+	m_result = 0;
+	m_state = 0;
+	m_result = 0;
+	Invalidate(TRUE);
+}
 
 void CGomokuDlg::OnLButtonDown(UINT nFlags, CPoint point)
 {
@@ -237,13 +282,18 @@ void CGomokuDlg::OnLButtonDown(UINT nFlags, CPoint point)
 		CBrush brush;
 		brush.CreateSolidBrush(RGB(0, 0, 0));
 		CBrush* oldBrush;
-
-		int x = point.x;
-		int y = point.y;
-		if (x > 225 && y > 125 && x <= 875 && y <= 775)
+		int x = (point.x+25) / 50;
+		int y = (point.y+25) / 50;
+		int Ex = x - 5;
+		int Ey = y - 3;
+		x *= 50;
+		y *= 50;
+		if (x > 225 && y > 125 && x <= 875 && y <= 775 && isExist[Ey][Ex] == 0)
 		{
 			if (!isWhiteTurn)
 			{
+				isExist[Ey][Ex] = 1;
+				m_state = 1;
 				oldBrush = dc.SelectObject(&brush);
 				dc.Ellipse(x - 20, y - 20, x + 20, y + 20);
 				dc.SelectObject(oldBrush);
@@ -252,12 +302,178 @@ void CGomokuDlg::OnLButtonDown(UINT nFlags, CPoint point)
 			}
 			else
 			{
+				isExist[Ey][Ex] = 2;
+				m_state = 2;
 				dc.Ellipse(x - 20, y - 20, x + 20, y + 20);
 				m_timer = 20;
 				isWhiteTurn = FALSE;
 			}
+
+			Shift_fp fp[8] = { &CGomokuDlg::Shift1, &CGomokuDlg::Shift2, &CGomokuDlg::Shift3, &CGomokuDlg::Shift4,
+				&CGomokuDlg::Shift5, &CGomokuDlg::Shift6, &CGomokuDlg::Shift7, &CGomokuDlg::Shift8 };
+
+			if (m_result == 0)
+			{
+				for (int i = 0; i < 8; i++)
+				{
+					CheckResult(Ey, Ex, fp[i]);
+				}
+				for (int i = 0; i < 4; i++)
+				{
+					m_countNum[i] = 0;
+				}
+			}
+			if (m_result == 1)
+			{
+				if (m_state == 1)
+				{
+					MessageBox(_T("흑돌 승!"));
+					CGomokuDlg::OnBnClickedButtStop();
+				}
+				else
+				{
+					MessageBox(_T("백돌 승!"));
+					CGomokuDlg::OnBnClickedButtStop();
+				}
+			}
+			
 		}
 	}
 	
 	CDialogEx::OnLButtonDown(nFlags, point);
+}
+
+typedef void(__thiscall CGomokuDlg::* Shift_fp)(char, char);
+
+void CGomokuDlg::CheckResult(char y, char x, Shift_fp fp)
+{
+	(this->*fp)(y, x);
+}
+
+void CGomokuDlg::Shift1(char y, char x)
+{
+	if (y > 0 && x > 0)
+	{
+		if (isExist[y - 1][x - 1] == m_state)
+			m_countNum[0]++;
+		else
+			return;
+
+		if (m_countNum[0] == 4)
+			m_result = 1;
+		else
+			Shift1(y - 1, x - 1);
+	}
+}
+
+void CGomokuDlg::Shift2(char y, char x)
+{
+	if (y > 0)
+	{
+		if (isExist[y - 1][x] == m_state)
+			m_countNum[1]++;
+		else
+			return;
+
+		if (m_countNum[1] == 4)
+			m_result = 1;
+		else
+			Shift2(y - 1, x);
+	}
+}
+
+void CGomokuDlg::Shift3(char y, char x)
+{
+	if (y > 0 && x < 12)
+	{
+		if (isExist[y - 1][x + 1] == m_state)
+			m_countNum[2]++;
+		else
+			return;
+
+		if (m_countNum[2] == 4)
+			m_result = 1;
+		else
+			Shift3(y - 1, x + 1);
+	}
+}
+
+void CGomokuDlg::Shift4(char y, char x)
+{
+	if (x < 12)
+	{
+		if (isExist[y][x + 1] == m_state)
+			m_countNum[3]++;
+		else
+			return;
+
+		if (m_countNum[3] == 4)
+			m_result = 1;
+		else
+			Shift4(y, x + 1);
+	}
+}
+
+void CGomokuDlg::Shift5(char y, char x)
+{
+	if (y < 12 && x < 12)
+	{
+		if (isExist[y + 1][x + 1] == m_state)
+			m_countNum[0]++;
+		else
+			return;
+
+		if (m_countNum[0] == 4)
+			m_result = 1;
+		else
+			Shift5(y + 1, x + 1);
+	}
+}
+
+void CGomokuDlg::Shift6(char y, char x)
+{
+	if (y < 12)
+	{
+		if (isExist[y + 1][x] == m_state)
+			m_countNum[1]++;
+		else
+			return;
+
+		if (m_countNum[1] == 4)
+			m_result = 1;
+		else
+			Shift6(y + 1, x);
+	}
+}
+
+void CGomokuDlg::Shift7(char y, char x)
+{
+	if (y < 12 && x > 0)
+	{
+		if (isExist[y + 1][x - 1] == m_state)
+			m_countNum[2]++;
+		else
+			return;
+
+		if (m_countNum[2] == 4)
+			m_result = 1;
+		else
+			Shift7(y + 1, x - 1);
+	}
+}
+
+void CGomokuDlg::Shift8(char y, char x)
+{
+	if (x > 0)
+	{
+		if (isExist[y][x - 1] == m_state)
+			m_countNum[3]++;
+		else
+			return;
+
+		if (m_countNum[3] == 4)
+			m_result = 1;
+		else
+			Shift8(y, x - 1);
+	}
 }
