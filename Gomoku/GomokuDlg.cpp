@@ -11,6 +11,7 @@
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
+#include "CPopup.h"
 
 
 // 응용 프로그램 정보에 사용되는 CAboutDlg 대화 상자입니다.
@@ -65,6 +66,7 @@ BEGIN_MESSAGE_MAP(CGomokuDlg, CDialogEx)
 	ON_WM_SYSCOMMAND()
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
+	ON_COMMAND(ID_TIMER, &CGomokuDlg::OnSetTimer)
 	ON_WM_TIMER()
 	ON_WM_CTLCOLOR()
 	ON_BN_CLICKED(IDC_BUTT_START, &CGomokuDlg::OnBnClickedButtStart)
@@ -105,11 +107,13 @@ BOOL CGomokuDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// 작은 아이콘을 설정합니다.
 
 	// TODO: 여기에 추가 초기화 작업을 추가합니다.
-	m_timer = 20;
+	m_timer = m_setTime;
 	isWhiteTurn = FALSE;
 	isGameStart = FALSE;
 	m_font.CreateFontW(30, 0, 0, 0, 0, 0, 0, 0, DEFAULT_CHARSET, 0, 0, 0, 0, _T("맑은고딕"));
 	GetDlgItem(IDC_STATIC_TIMER)->SetFont(&m_font);
+	GetDlgItem(IDC_STATIC_TURN_W)->SetFont(&m_font);
+	GetDlgItem(IDC_STATIC_TURN_B)->SetFont(&m_font);
 	return TRUE;  // 포커스를 컨트롤에 설정하지 않으면 TRUE를 반환합니다.
 }
 
@@ -217,11 +221,19 @@ void CGomokuDlg::OnTimer(UINT_PTR nIDEvent)
 	m_timer -= 1;
 	if (m_timer < 0)
 	{
-		m_timer = 20;
+		m_timer = m_setTime;
 		if (isWhiteTurn)
+		{
 			isWhiteTurn = FALSE;
+			(GetDlgItem(IDC_STATIC_TURN_B))->ShowWindow(TRUE);
+			(GetDlgItem(IDC_STATIC_TURN_W))->ShowWindow(FALSE);
+		}
 		else
+		{
 			isWhiteTurn = TRUE;
+			(GetDlgItem(IDC_STATIC_TURN_B))->ShowWindow(FALSE);
+			(GetDlgItem(IDC_STATIC_TURN_W))->ShowWindow(TRUE);
+		}
 	}
 	m_strTime.Format(_T("%d"), m_timer);
 	SetDlgItemText(IDC_STATIC_TIMER, m_strTime);
@@ -250,11 +262,17 @@ HBRUSH CGomokuDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
 void CGomokuDlg::OnBnClickedButtStart()
 {
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
-	SetTimer(0, 1000, NULL);
-	isGameStart = TRUE;
-	GetDlgItem(IDC_BUTT_START)->EnableWindow(FALSE);
-	GetDlgItem(IDC_BUTT_STOP)->EnableWindow(TRUE);
-
+	if (m_setTime == 0)
+		AfxMessageBox(_T("타이머를 설정해주세요."));
+	else
+	{
+		SetTimer(0, 1000, NULL);
+		isGameStart = TRUE;
+		GetDlgItem(IDC_BUTT_START)->EnableWindow(FALSE);
+		GetDlgItem(IDC_BUTT_STOP)->EnableWindow(TRUE);
+		(GetDlgItem(IDC_STATIC_TURN_B))->ShowWindow(TRUE);
+		(GetDlgItem(IDC_STATIC_TURN_W))->ShowWindow(FALSE);
+	}
 }
 
 void CGomokuDlg::OnBnClickedButtStop()
@@ -262,11 +280,13 @@ void CGomokuDlg::OnBnClickedButtStop()
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
 	GetDlgItem(IDC_BUTT_START)->EnableWindow(TRUE);
 	GetDlgItem(IDC_BUTT_STOP)->EnableWindow(FALSE);
+	(GetDlgItem(IDC_STATIC_TURN_B))->ShowWindow(FALSE);
+	(GetDlgItem(IDC_STATIC_TURN_W))->ShowWindow(FALSE);
 	KillTimer(0);
 	isGameStart = FALSE;
 	memset(isExist, 0, sizeof(isExist));
 	memset(m_countNum, 0, sizeof(m_countNum));
-	m_timer = 20;
+	m_timer = m_setTime;
 	m_result = 0;
 	m_state = 0;
 	m_result = 0;
@@ -297,16 +317,20 @@ void CGomokuDlg::OnLButtonDown(UINT nFlags, CPoint point)
 				oldBrush = dc.SelectObject(&brush);
 				dc.Ellipse(x - 20, y - 20, x + 20, y + 20);
 				dc.SelectObject(oldBrush);
-				m_timer = 20;
+				m_timer = m_setTime;
 				isWhiteTurn = TRUE;
+				(GetDlgItem(IDC_STATIC_TURN_B))->ShowWindow(FALSE);
+				(GetDlgItem(IDC_STATIC_TURN_W))->ShowWindow(TRUE);
 			}
 			else
 			{
 				isExist[Ey][Ex] = 2;
 				m_state = 2;
 				dc.Ellipse(x - 20, y - 20, x + 20, y + 20);
-				m_timer = 20;
+				m_timer = m_setTime;
 				isWhiteTurn = FALSE;
+				(GetDlgItem(IDC_STATIC_TURN_B))->ShowWindow(TRUE);
+				(GetDlgItem(IDC_STATIC_TURN_W))->ShowWindow(FALSE);
 			}
 
 			Shift_fp fp[8] = { &CGomokuDlg::Shift1, &CGomokuDlg::Shift2, &CGomokuDlg::Shift3, &CGomokuDlg::Shift4,
@@ -475,5 +499,17 @@ void CGomokuDlg::Shift8(char y, char x)
 			m_result = 1;
 		else
 			Shift8(y, x - 1);
+	}
+}
+
+void CGomokuDlg::OnSetTimer()
+{
+	// TODO: 여기에 명령 처리기 코드를 추가합니다.
+	CPopup PopupDialog;
+	if (PopupDialog.DoModal() == IDOK)
+	{
+		m_setTime = PopupDialog.m_editTimer;
+		m_timer = m_setTime;
+		UpdateData(FALSE);
 	}
 }

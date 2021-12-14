@@ -43,6 +43,7 @@ public:
 	BOOL isGameStart;
 	int isExist[13][13];
 	int m_timer;
+	int m_setTime;
 
 	// 오목 알고리즘 관련
 	typedef void(__thiscall CGomokuDlg::* Shift_fp)(char, char);
@@ -58,4 +59,5 @@ public:
 	int m_state = 0;
 	int m_result = 0;
 	int m_countNum[4];
+	afx_msg void OnSetTimer();
 };

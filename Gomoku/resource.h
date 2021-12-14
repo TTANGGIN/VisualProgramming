@@ -7,18 +7,24 @@
 #define IDS_ABOUTBOX                    101
 #define IDD_GOMOKU_DIALOG               102
 #define IDR_MAINFRAME                   128
+#define IDR_MENU1                       130
+#define IDD_DIALOG_POPUP                131
 #define IDC_STATIC_TIMER                1002
 #define IDC_BUTT_START                  1003
 #define IDC_BUTT_STOP                   1009
-#define IDC_EDIT_C                      1010
+#define IDC_EDIT1                       1012
+#define IDC_STATIC_TURN_W               1013
+#define IDC_STATIC_TURN_B               1014
+#define ID_32771                        32771
+#define ID_TIMER                        32772
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        130
-#define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1012
+#define _APS_NEXT_RESOURCE_VALUE        133
+#define _APS_NEXT_COMMAND_VALUE         32773
+#define _APS_NEXT_CONTROL_VALUE         1015
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

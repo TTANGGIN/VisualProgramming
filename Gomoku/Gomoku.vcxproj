@@ -183,6 +183,7 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="CPopup.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="Gomoku.h" />
     <ClInclude Include="GomokuDlg.h" />
@@ -191,6 +192,7 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CPopup.cpp" />
     <ClCompile Include="Gomoku.cpp" />
     <ClCompile Include="GomokuDlg.cpp" />
     <ClCompile Include="pch.cpp">
