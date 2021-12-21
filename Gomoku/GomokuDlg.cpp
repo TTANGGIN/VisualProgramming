@@ -263,16 +263,18 @@ void CGomokuDlg::OnBnClickedButtStart()
 {
 	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
 	if (m_setTime == 0)
-		AfxMessageBox(_T("타이머를 설정해주세요."));
-	else
 	{
+		m_setTime = 20;
+		m_timer = m_setTime;
+	}
+
 		SetTimer(0, 1000, NULL);
 		isGameStart = TRUE;
 		GetDlgItem(IDC_BUTT_START)->EnableWindow(FALSE);
 		GetDlgItem(IDC_BUTT_STOP)->EnableWindow(TRUE);
 		(GetDlgItem(IDC_STATIC_TURN_B))->ShowWindow(TRUE);
 		(GetDlgItem(IDC_STATIC_TURN_W))->ShowWindow(FALSE);
-	}
+
 }
 
 void CGomokuDlg::OnBnClickedButtStop()
@@ -349,16 +351,12 @@ void CGomokuDlg::OnLButtonDown(UINT nFlags, CPoint point)
 			}
 			if (m_result == 1)
 			{
+				KillTimer(0);
 				if (m_state == 1)
-				{
 					MessageBox(_T("흑돌 승!"));
-					CGomokuDlg::OnBnClickedButtStop();
-				}
 				else
-				{
 					MessageBox(_T("백돌 승!"));
-					CGomokuDlg::OnBnClickedButtStop();
-				}
+				CGomokuDlg::OnBnClickedButtStop();
 			}
 			
 		}
